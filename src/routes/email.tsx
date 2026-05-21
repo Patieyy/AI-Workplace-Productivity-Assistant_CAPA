@@ -8,6 +8,9 @@ import { generateEmail } from "@/lib/ai.functions";
 import { PageHeader } from "@/components/app/PageHeader";
 import { ResultCard } from "@/components/app/ResultCard";
 import { Disclaimer } from "@/components/app/Disclaimer";
+import { ExamplePrompts } from "@/components/app/ExamplePrompts";
+import { ThinkingSkeleton } from "@/components/app/ThinkingSkeleton";
+import { bumpStat } from "@/hooks/use-stats";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -27,14 +30,26 @@ function EmailPage() {
 
   const mutation = useMutation({
     mutationFn: () => fn({ data: { purpose, tone, audience } }),
+    onSuccess: () => {
+      bumpStat("emails");
+      toast.success("Email drafted");
+    },
     onError: (e: Error) => toast.error(e.message || "Failed to generate email"),
   });
+
+  const EXAMPLES = [
+    "Ask my manager for time off next Friday for a family event.",
+    "Follow up with a client who hasn't responded to my proposal in a week.",
+    "Decline a meeting invite politely and suggest async updates instead.",
+    "Introduce myself to a new cross-functional team I'll collaborate with.",
+  ];
 
   return (
     <div>
       <PageHeader icon={Mail} title="Smart Email Generator" description="Draft professional emails tailored to your tone and audience." />
-      <Card>
+      <Card className="transition-shadow hover:shadow-md">
         <CardContent className="space-y-4 pt-6">
+          <ExamplePrompts examples={EXAMPLES} onPick={setPurpose} />
           <div>
             <Label htmlFor="purpose">What's the email about?</Label>
             <Textarea
@@ -80,7 +95,8 @@ function EmailPage() {
           </Button>
         </CardContent>
       </Card>
-      {mutation.data && <ResultCard text={mutation.data.text} />}
+      {mutation.isPending && <ThinkingSkeleton label="Drafting your email..." />}
+      {!mutation.isPending && mutation.data && <ResultCard text={mutation.data.text} />}
       <Disclaimer />
     </div>
   );
