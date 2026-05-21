@@ -8,6 +8,9 @@ import { researchTopic } from "@/lib/ai.functions";
 import { PageHeader } from "@/components/app/PageHeader";
 import { ResultCard } from "@/components/app/ResultCard";
 import { Disclaimer } from "@/components/app/Disclaimer";
+import { ExamplePrompts } from "@/components/app/ExamplePrompts";
+import { ThinkingSkeleton } from "@/components/app/ThinkingSkeleton";
+import { bumpStat } from "@/hooks/use-stats";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -23,14 +26,26 @@ function ResearchPage() {
   const [topic, setTopic] = useState("");
   const mutation = useMutation({
     mutationFn: () => fn({ data: { topic } }),
+    onSuccess: () => {
+      bumpStat("research");
+      toast.success("Briefing ready");
+    },
     onError: (e: Error) => toast.error(e.message || "Failed to research"),
   });
+
+  const EXAMPLES = [
+    "Impact of remote work on engineering team productivity",
+    "Best practices for async communication across time zones",
+    "How leading SaaS companies structure onboarding",
+    "Trends in AI-assisted knowledge work for 2026",
+  ];
 
   return (
     <div>
       <PageHeader icon={Lightbulb} title="AI Research Assistant" description="Summarize a topic or pasted text and surface insights and recommendations." />
-      <Card>
+      <Card className="transition-shadow hover:shadow-md">
         <CardContent className="space-y-4 pt-6">
+          <ExamplePrompts examples={EXAMPLES} onPick={setTopic} />
           <div>
             <Label htmlFor="topic">Topic or source text</Label>
             <Textarea
@@ -48,7 +63,8 @@ function ResearchPage() {
           </Button>
         </CardContent>
       </Card>
-      {mutation.data && <ResultCard text={mutation.data.text} />}
+      {mutation.isPending && <ThinkingSkeleton label="Researching the topic..." />}
+      {!mutation.isPending && mutation.data && <ResultCard text={mutation.data.text} />}
       <Disclaimer />
     </div>
   );

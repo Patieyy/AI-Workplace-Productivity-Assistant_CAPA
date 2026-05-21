@@ -131,6 +131,14 @@ function RootComponent() {
                 <Outlet />
               </div>
             </main>
+            <footer className="border-t bg-background/60 px-4 py-4 backdrop-blur md:px-8">
+              <div className="mx-auto flex w-full max-w-5xl flex-col items-center justify-between gap-2 text-xs text-muted-foreground sm:flex-row">
+                <span>© {new Date().getFullYear()} Workplace AI · Productivity Suite</span>
+                <span className="text-center sm:text-right">
+                  AI-generated content may require human review.
+                </span>
+              </div>
+            </footer>
           </div>
         </div>
         <Toaster />
