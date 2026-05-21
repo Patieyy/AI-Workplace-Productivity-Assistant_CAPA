@@ -8,6 +8,9 @@ import { planTasks } from "@/lib/ai.functions";
 import { PageHeader } from "@/components/app/PageHeader";
 import { ResultCard } from "@/components/app/ResultCard";
 import { Disclaimer } from "@/components/app/Disclaimer";
+import { ExamplePrompts } from "@/components/app/ExamplePrompts";
+import { ThinkingSkeleton } from "@/components/app/ThinkingSkeleton";
+import { bumpStat } from "@/hooks/use-stats";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -25,13 +28,22 @@ function PlannerPage() {
   const [range, setRange] = useState<"day" | "week">("day");
   const mutation = useMutation({
     mutationFn: () => fn({ data: { tasks, range } }),
+    onSuccess: () => {
+      bumpStat("tasks");
+      toast.success("Plan ready");
+    },
     onError: (e: Error) => toast.error(e.message || "Failed to plan"),
   });
+
+  const EXAMPLES = [
+    "Finish Q3 report\nReview PR #482\nCall client about renewal\nPrep slides for Monday standup",
+    "Draft project brief\n1:1 with direct report\nInbox zero\nDeep work: refactor auth module",
+  ];
 
   return (
     <div>
       <PageHeader icon={ListTodo} title="AI Task Planner" description="Get a prioritized plan with time-blocking and time-management tips." />
-      <Card>
+      <Card className="transition-shadow hover:shadow-md">
         <CardContent className="space-y-4 pt-6">
           <Tabs value={range} onValueChange={(v) => setRange(v as "day" | "week")}>
             <TabsList>
@@ -39,6 +51,10 @@ function PlannerPage() {
               <TabsTrigger value="week">This week</TabsTrigger>
             </TabsList>
           </Tabs>
+          <ExamplePrompts
+            examples={["Sample workday tasks", "Sample focus week"]}
+            onPick={(label) => setTasks(label === "Sample workday tasks" ? EXAMPLES[0] : EXAMPLES[1])}
+          />
           <div>
             <Label htmlFor="tasks">List your tasks (one per line)</Label>
             <Textarea
@@ -56,7 +72,8 @@ function PlannerPage() {
           </Button>
         </CardContent>
       </Card>
-      {mutation.data && <ResultCard text={mutation.data.text} />}
+      {mutation.isPending && <ThinkingSkeleton label="Prioritizing your tasks..." />}
+      {!mutation.isPending && mutation.data && <ResultCard text={mutation.data.text} />}
       <Disclaimer />
     </div>
   );
