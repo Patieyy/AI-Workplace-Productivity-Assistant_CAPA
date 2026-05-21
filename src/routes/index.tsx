@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Mail, NotebookPen, ListTodo, Lightbulb, MessageSquare, Sparkles, ArrowRight } from "lucide-react";
+import { Mail, NotebookPen, ListTodo, Lightbulb, MessageSquare, Sparkles, ArrowRight, TrendingUp } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useStats } from "@/hooks/use-stats";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -22,10 +23,16 @@ const features = [
 ];
 
 function Dashboard() {
+  const stats = useStats();
+  const analytics = [
+    { label: "Emails Generated", value: stats.emails, icon: Mail, accent: "from-indigo-500/15 to-violet-500/10" },
+    { label: "Tasks Planned", value: stats.tasks, icon: ListTodo, accent: "from-violet-500/15 to-fuchsia-500/10" },
+    { label: "Meetings Summarized", value: stats.meetings, icon: NotebookPen, accent: "from-blue-500/15 to-indigo-500/10" },
+  ];
   return (
-    <div>
+    <div className="animate-fade-in">
       <section
-        className="relative overflow-hidden rounded-2xl border p-8 md:p-12"
+        className="relative overflow-hidden rounded-2xl border p-6 sm:p-8 md:p-12"
         style={{ background: "var(--gradient-subtle)" }}
       >
         <div
@@ -57,11 +64,47 @@ function Dashboard() {
       </section>
 
       <section className="mt-8">
+        <div className="mb-4 flex items-center gap-2">
+          <TrendingUp className="h-4 w-4 text-primary" />
+          <h2 className="text-lg font-semibold tracking-tight">Your activity</h2>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-3">
+          {analytics.map((a) => (
+            <Card
+              key={a.label}
+              className="group relative overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lg"
+            >
+              <div
+                className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${a.accent} opacity-60`}
+              />
+              <CardContent className="relative p-5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    {a.label}
+                  </span>
+                  <div
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-primary-foreground shadow-sm transition-transform group-hover:scale-110"
+                    style={{ background: "var(--gradient-primary)" }}
+                  >
+                    <a.icon className="h-4 w-4" />
+                  </div>
+                </div>
+                <div className="mt-3 text-3xl font-semibold tracking-tight">{a.value}</div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {a.value === 0 ? "No activity yet — try a tool below." : "Total this device"}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-8">
         <h2 className="mb-4 text-lg font-semibold tracking-tight">Tools</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((f) => (
             <Link key={f.to} to={f.to} className="group">
-              <Card className="h-full transition-all hover:-translate-y-0.5 hover:shadow-lg">
+              <Card className="h-full transition-all duration-200 hover:-translate-y-1 hover:border-primary/40 hover:shadow-lg">
                 <CardContent className="p-5">
                   <div
                     className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg text-primary-foreground shadow-sm transition-transform group-hover:scale-110"
@@ -80,10 +123,6 @@ function Dashboard() {
           ))}
         </div>
       </section>
-
-      <p className="mt-8 text-center text-xs text-muted-foreground">
-        AI-generated content may require human review.
-      </p>
     </div>
   );
 }
